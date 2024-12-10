@@ -331,6 +331,27 @@ final class ConnectionTest extends TestCase
         $connection->send($body, $headers, $delay);
     }
 
+    public function testSendWithRoundedDelay(): void
+    {
+        $tube = 'xyz';
+        $body = 'foo';
+        $headers = ['test' => 'bar'];
+        $delay = 920;
+        $expectedDelay = 1; // 920 ms rounded to 1 second
+
+        $client = $this->createMock(PheanstalkInterface::class);
+        $client->expects($this->once())->method('useTube')->with($tube)->willReturn($client);
+        $client->expects($this->once())->method('put')->with(
+            $this->anything(),
+            $this->anything(),
+            $expectedDelay,
+            $this->anything(),
+        );
+
+        $connection = new Connection(['tube_name' => $tube], $client);
+        $connection->send($body, $headers, $delay);
+    }
+
     public function testKeepalive()
     {
         $id = 123456;
